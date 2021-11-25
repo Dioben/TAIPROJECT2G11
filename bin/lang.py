@@ -16,14 +16,8 @@ if __name__ == "__main__":
         raise ValueError("Smoothing must be non-negative")
 
     table,_,alphabet = common_modules.getFileFrequencies(args.classsource,args.order)
-    _,appearances,alphabet2 = common_modules.getFileFrequencies(args.input,args.order)
+    #_,appearances,alphabet2 = common_modules.getFileFrequencies(args.input,args.order)
     
-    if not alphabet2.issubset(alphabet):#unknown characters exist in target file
-        raise ValueError("Target file cannot be represented by this class")
-
     p_map = common_modules.calculateProbabilityMapSmoothingGT0(table,alphabet,args.smoothing)
 
-    entropy = common_modules.calculateEntropy(p_map,appearances,len(alphabet))
-    filelen = args.order+sum(appearances.values()) #TODO: check my math,might need an offset
-    encodesize=entropy*filelen
-    print(encodesize)
+    filesize = common_modules.calculateFileSize(p_map,args.input)

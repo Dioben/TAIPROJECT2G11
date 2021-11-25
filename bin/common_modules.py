@@ -112,3 +112,5 @@ def generateText(probabilities,alphabet,length,start):
         current_buffer= current_buffer[1:]+char
     return generated_string
 
+def calculateFileSize(p_map,inputfile):
+    pass #TODO
