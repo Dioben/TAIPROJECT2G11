@@ -21,3 +21,4 @@ if __name__ == "__main__":
 
     start_up = sorted(alphabet)[0]*args.order
     filesize = common_modules.calculateFileSize(bit_cost_map,args.input,start_up)
+    print(filesize)
