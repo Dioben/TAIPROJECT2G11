@@ -112,9 +112,6 @@ def generateText(probabilities,alphabet,length,start):
         current_buffer= current_buffer[1:]+char
     return generated_string
 
-def calculateFileSize(p_map,inputfile,start_up):
-    pass #TODO
-
 
 def calculateBitCostMap(frequencies,alphabet,smoothing):
     if not smoothing>=0:
@@ -128,3 +125,23 @@ def calculateBitCostMap(frequencies,alphabet,smoothing):
         result[sequence] = { x: -math.log2((y+smoothing)/denominator) for x,y in appearances.items() }
         result[sequence]['default']=-math.log2(smoothing/denominator)
     return result
+
+def calculateFileSize(cost_map,inputfile,start_up,default_cost):
+    file = open(inputfile,"r")
+    text= file.read()
+    file.close()
+
+    current_buffer = start_up
+    cost = 0
+
+    for character in text:
+        if current_buffer not in cost_map: #do we know this predecessor?
+            cost+=default_cost
+        else:
+            if character in cost_map[current_buffer]: #do we know this follow-up character?
+                cost+=cost_map[current_buffer][character]
+            else:
+                cost+=cost_map[current_buffer]['default']
+        current_buffer = current_buffer [1:]+character
+        
+    return cost
