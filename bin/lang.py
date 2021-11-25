@@ -1,4 +1,5 @@
 import argparse
+from math import log2
 import common_modules
 
 if __name__ == "__main__":
@@ -20,5 +21,8 @@ if __name__ == "__main__":
     bit_cost_map = common_modules.calculateProbabilityMapSmoothingGT0(table,alphabet,args.smoothing)
 
     start_up = sorted(alphabet)[0]*args.order
-    filesize = common_modules.calculateFileSize(bit_cost_map,args.input,start_up)
+
+    default_cost = log2(1/len(alphabet)) #in case we haven't seen a prefix
+    
+    filesize = common_modules.calculateFileSize(bit_cost_map,args.input,start_up,default_cost)
     print(filesize)
