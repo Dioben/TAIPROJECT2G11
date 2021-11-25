@@ -112,5 +112,19 @@ def generateText(probabilities,alphabet,length,start):
         current_buffer= current_buffer[1:]+char
     return generated_string
 
-def calculateFileSize(p_map,inputfile):
+def calculateFileSize(p_map,inputfile,start_up):
     pass #TODO
+
+
+def calculateBitCostMap(frequencies,alphabet,smoothing):
+    if not smoothing>=0:
+        raise ValueError("Smoothing has to be equal to or greater than 0")
+    result = {}
+    smoothing_denominator = smoothing*len(alphabet)
+
+    for sequence,appearances in frequencies.items():
+        total = sum(appearances.values())
+        denominator = total+smoothing_denominator
+        result[sequence] = { x: -math.log2((y+smoothing)/denominator) for x,y in appearances.items() }
+        result[sequence]['default']=-math.log2(smoothing/denominator)
+    return result

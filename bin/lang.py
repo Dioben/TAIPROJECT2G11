@@ -16,8 +16,8 @@ if __name__ == "__main__":
         raise ValueError("Smoothing must be non-negative")
 
     table,_,alphabet = common_modules.getFileFrequencies(args.classsource,args.order)
-    #_,appearances,alphabet2 = common_modules.getFileFrequencies(args.input,args.order)
     
-    p_map = common_modules.calculateProbabilityMapSmoothingGT0(table,alphabet,args.smoothing)
+    bit_cost_map = common_modules.calculateProbabilityMapSmoothingGT0(table,alphabet,args.smoothing)
 
-    filesize = common_modules.calculateFileSize(p_map,args.input)
+    start_up = sorted(alphabet)[0]*args.order
+    filesize = common_modules.calculateFileSize(bit_cost_map,args.input,start_up)
