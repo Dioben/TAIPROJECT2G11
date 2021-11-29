@@ -6,6 +6,9 @@ models/*.xz
 # C extensions
 *.so
 
+#my god this thing is huge
+models.json
+
 # Distribution / packaging
 .Python
 build/
