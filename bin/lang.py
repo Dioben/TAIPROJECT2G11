@@ -13,12 +13,11 @@ if __name__ == "__main__":
 
     if args.order<1:
         raise ValueError("Order must be at least 1")
-    if args.smoothing<0:
-        raise ValueError("Smoothing must be non-negative")
+    if args.smoothing<=0:
+        raise ValueError("Smoothing must be larger than 0")
 
     table,_,alphabet = common_modules.getFileFrequencies(args.classsource,args.order)
-    
-    bit_cost_map = common_modules.calculateProbabilityMapSmoothingGT0(table,alphabet,args.smoothing)
+    bit_cost_map = common_modules.calculateBitCostMap(table,alphabet,args.smoothing)
 
     start_up = sorted(alphabet)[0]*args.order
 
