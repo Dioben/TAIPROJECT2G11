@@ -2,6 +2,7 @@ import lzma
 import argparse
 import os
 import json
+import gzip
 
 from common_modules import calculateBitCostMap
 #compiles all text files in /models into a pickle
@@ -43,15 +44,15 @@ if __name__ == "__main__":
     parser.add_argument("--order",help="Order of the model",type=int,default=3)
     parser.add_argument("--smoothing", help="Smoothing parameter", type=float,default=0.1)
     parser.add_argument("--folder", help="Models folder", default="../models")
-    parser.add_argument("--output", help="Output json name", default="models.json")
+    parser.add_argument("--outputprefix", help="Output prefix", default="models/")
     args = parser.parse_args()
 
+    os.makedirs(os.path.dirname(args.outputprefix), exist_ok=True)
     if args.order<1:
         raise ValueError("Order must be at least 1")
     if args.smoothing<=0:
         raise ValueError("Smoothing must be larger than 0")
 
-    models = {}
     ignores = []
     for f in os.listdir(args.folder):
         keyname = f.removesuffix(".wiki.utf8.xz")
@@ -61,11 +62,9 @@ if __name__ == "__main__":
             ignores.append(keyname)
             continue
         bit_cost_map = calculateBitCostMap(table,alphabet,args.smoothing)
-        models[keyname]={"model":bit_cost_map,"alphabet":list(alphabet)}
-        
-    outputfile = open(args.output,"w")
-    json.dump(models,outputfile)
-    outputfile.close()
+        outputfile = gzip.open(f"{args.outputprefix}{keyname}.tar.gz","wt")
+        json.dump({"model":bit_cost_map,"alphabet":sorted(alphabet)},outputfile)
+        outputfile.close()
     
     print("Compilation finished")
     print("Failed files:")
