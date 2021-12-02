@@ -15,6 +15,7 @@ if __name__ == "__main__":
     file = open(args.input,"r")
     text= file.read()
     file.close()
+    notInModelCost = math.log2(len(set(text)))
 
     bestcost = math.inf
     bestmodel = None
@@ -27,7 +28,7 @@ if __name__ == "__main__":
         order = len( list(model['model'].keys())[0] )#get length of a random key to know order, all the keys in a given model have same order anyway
         start_up = sorted(model['alphabet'])[0]*order
         default_cost = -math.log2(1/len(model['alphabet'])) #in case we haven't seen a prefix
-        filesize = common_modules.calculateFileSize(model['model'],text,start_up,default_cost)
+        filesize = common_modules.calculateFileSize(model,text,start_up,default_cost,notInModelCost)
         if filesize<bestcost:
             bestmodel = keyname
             bestcost = filesize

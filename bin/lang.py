@@ -22,10 +22,13 @@ if __name__ == "__main__":
     start_up = sorted(alphabet)[0]*args.order
 
     default_cost = -log2(1/len(alphabet)) #in case we haven't seen a prefix
+
     
     file = open(args.input,"r")
     text= file.read()
     file.close()
 
-    filesize = common_modules.calculateFileSize(bit_cost_map,text,start_up,default_cost)
+    notInModelCost = log2(len(set(text)))
+
+    filesize = common_modules.calculateFileSize({"model":bit_cost_map,"alphabet":alphabet},text,start_up,default_cost,notInModelCost)
     print(filesize)
