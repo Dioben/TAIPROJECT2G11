@@ -24,6 +24,11 @@ def loadModelPaths(path):
         models[keyname]=fullpath
     return models
 
+def LocateLangsMemory(models,text,min_length,max_default):
+    pass
+
+def LocateLangsIO(models,text,min_length,max_default):
+    pass
 
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
@@ -36,10 +41,13 @@ if __name__ == "__main__":
     parser.add_argument("--max-default",help="Consecutive Unknown sequences tolerated",type=int, default=7)
     args = parser.parse_args()
 
+    file = open(args.input,"r")
+    text= file.read()
+    file.close()
 
     if args.memory:
         models = loadModelsFull(args.classes)
-        gaps = LocateLangsIntensive()
+        gaps = LocateLangsMemory(models,text,args.min_length,args.max_default)
     else:
         models = loadModelPaths(args.classes)
-        gaps = LocateLangsIO()
+        gaps = LocateLangsIO(models,text,args.min_length,args.max_default)
