@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     start_up = sorted(alphabet)[0]*args.order
 
-    default_cost = log2(1/len(alphabet)) #in case we haven't seen a prefix
+    default_cost = -log2(1/len(alphabet)) #in case we haven't seen a prefix
     
     filesize = common_modules.calculateFileSize(bit_cost_map,args.input,start_up,default_cost)
     print(filesize)
