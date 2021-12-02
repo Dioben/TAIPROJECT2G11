@@ -46,16 +46,15 @@ def calculateBitCostMap(frequencies,alphabet,smoothing):
         result[sequence]['default']=-math.log2(smoothing/denominator)
     return result
 
-def calculateFileSize(cost_map,inputfile,start_up,default_cost):
-    file = open(inputfile,"r")
-    text= file.read()
-    file.close()
-
+def calculateFileSize(model,text,start_up,default_cost,notInModelCost):
     current_buffer = start_up
     cost = 0
-
+    cost_map = model['model']
+    alphabet = set(model['alphabet'])
     for character in text:
-        if current_buffer not in cost_map: #do we know this predecessor?
+        if character not in alphabet:
+            cost+=notInModelCost
+        elif current_buffer not in cost_map: #do we know this predecessor?
             cost+=default_cost
         else:
             if character in cost_map[current_buffer]: #do we know this follow-up character?
