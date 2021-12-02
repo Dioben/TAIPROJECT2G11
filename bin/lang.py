@@ -23,5 +23,9 @@ if __name__ == "__main__":
 
     default_cost = -log2(1/len(alphabet)) #in case we haven't seen a prefix
     
-    filesize = common_modules.calculateFileSize(bit_cost_map,args.input,start_up,default_cost)
+    file = open(args.input,"r")
+    text= file.read()
+    file.close()
+
+    filesize = common_modules.calculateFileSize(bit_cost_map,text,start_up,default_cost)
     print(filesize)
