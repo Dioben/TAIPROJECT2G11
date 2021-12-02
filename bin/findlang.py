@@ -8,7 +8,7 @@ import os
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
     parser.add_argument("--classes",help="Class models source folder", default="models")
-    parser.add_argument("--input",help="Text under anaylisis", default="../example/example.txt")
+    parser.add_argument("--input",help="Text under analisis", default="../example/example.txt")
     args = parser.parse_args()
 
 
