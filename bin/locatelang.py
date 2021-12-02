@@ -5,6 +5,26 @@ import common_modules
 import math
 import os
 
+def loadModelsFull(path):
+    models = {}
+    for f in os.listdir(args.classes):
+        keyname = f.removesuffix(".tar.gz")
+        fullpath = f"{args.classes}/{f}"
+        fileobj = gzip.open(fullpath,"rt")
+        model = json.load(fileobj)
+        fileobj.close()
+        models[keyname]=model
+    return models
+
+def loadModelPaths(path):
+    models = {}
+    for f in os.listdir(args.classes):
+        keyname = f.removesuffix(".tar.gz")
+        fullpath = f"{args.classes}/{f}"
+        models[keyname]=fullpath
+    return models
+
+
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
     parser.add_argument("--classes",help="Class models source folder", default="models")
@@ -18,7 +38,8 @@ if __name__ == "__main__":
 
 
     if args.memory:
-        models = loadModels()
+        models = loadModelsFull(args.classes)
         gaps = LocateLangsIntensive()
     else:
+        models = loadModelPaths(args.classes)
         gaps = LocateLangsIO()
