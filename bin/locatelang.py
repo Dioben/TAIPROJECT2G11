@@ -25,10 +25,90 @@ def loadModelPaths(path):
     return models
 
 def LocateLangsMemory(models,text,min_length,max_default):
-    pass
+    langs = []
+    checkpoint = 0
+    max = len(text)
+    text_alphabet = set(text)
+    notInModelCost = math.log2(len(text_alphabet))
+    start_up = sorted(text_alphabet)[0]*999 #if you use more than this stuff breaks, please do not compute a model with k =1000
+    while checkpoint<max:
+        results = {}
+        effective_text = text[checkpoint:]
+        for keyname,model in models.items():
+            default_cost = -math.log2(1/len(model['alphabet']))
+            cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
+            results[keyname] = (cost,travelled)
+
+        ending = max-checkpoint<min_length #do we have enough characters left to enforce min_length
+        
+        filteredresults={x for x,y in results.items() if y[1]>=min_length or ending}
+        sortedbest = sorted(results.keys(),key=lambda x:results[x][0]/results[x][1])
+
+        best = None
+        for result in sortedbest:
+            if result in filteredresults:
+                best = result
+                break
+        if not best:
+            best = sortedbest[0]
+
+        offset = results[best][1]
+        checkpoint+= offset 
+        if checkpoint<max:
+            checkpoint-=max_default
+        langs.append((best,checkpoint,results[best][0]))
+        if offset>=999: #full replace
+            start_up = effective_text[offset-999:offset]
+        else:  #partial update
+            start_up = start_up[offset:]+effective_text[:offset]
+            
+    return langs
 
 def LocateLangsIO(models,text,min_length,max_default):
-    pass
+    langs = []
+    checkpoint = 0
+    max = len(text)
+    text_alphabet = set(text)
+    notInModelCost = math.log2(len(text_alphabet))
+    start_up = sorted(text_alphabet)[0]*999 #if you use more than this stuff breaks, please do not compute a model with k =1000
+    while checkpoint<max:
+        results = {}
+        effective_text = text[checkpoint:]
+        for keyname,modelpath in models.items():
+            
+            #load model
+            fileobj = gzip.open(modelpath,"rt")
+            model = json.load(fileobj)
+            fileobj.close()
+
+            default_cost = -math.log2(1/len(model['alphabet']))
+            cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
+            results[keyname] = (cost,travelled)
+
+        ending = max-checkpoint<min_length #do we have enough characters left to enforce min_length
+        
+        filteredresults={x for x,y in results.items() if y[1]>=min_length or ending}
+        sortedbest = sorted(results.keys(),key=lambda x:results[x][0]/results[x][1])[0]
+
+        best = None
+        for result in sortedbest:
+            if result in filteredresults:
+                best = result
+                break
+        if not best:
+            best = sortedbest[0]
+
+        offset = results[best][1]
+        checkpoint+= offset 
+        if checkpoint<max:
+            checkpoint-=max_default
+        langs.append((best,checkpoint,results[best][0]))
+        if offset>=999: #full replace
+            start_up = effective_text[offset-999:offset]
+        else:  #partial update
+            start_up = start_up[offset:]+effective_text[:offset]
+            
+    return langs
 
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
@@ -51,3 +131,5 @@ if __name__ == "__main__":
     else:
         models = loadModelPaths(args.classes)
         gaps = LocateLangsIO(models,text,args.min_length,args.max_default)
+
+print(*gaps, sep="\n")
