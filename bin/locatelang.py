@@ -15,3 +15,10 @@ if __name__ == "__main__":
     parser.add_argument("--min-length",help="Minimum length of a language chunk",type=int, default=50)
     parser.add_argument("--max-default",help="Consecutive Unknown sequences tolerated",type=int, default=7)
     args = parser.parse_args()
+
+
+    if args.memory:
+        models = loadModels()
+        gaps = LocateLangsIntensive()
+    else:
+        gaps = LocateLangsIO()
