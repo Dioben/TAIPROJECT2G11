@@ -52,11 +52,11 @@ def LocateLangsMemory(models,text,min_length,max_default):
         if not best:
             best = sortedbest[0]
 
-        offset = results[best][1]
+        langs.append((best,checkpoint)) #we want to know where a lang starts so this goes first
+        offset = results[best][1] 
         checkpoint+= offset 
-        if checkpoint<max:
+        if checkpoint<max: #means we stopped via the default max rule
             checkpoint-=max_default
-        langs.append((best,checkpoint,results[best][0]))
         if offset>=999: #full replace
             start_up = effective_text[offset-999:offset]
         else:  #partial update
@@ -98,11 +98,11 @@ def LocateLangsIO(models,text,min_length,max_default):
         if not best:
             best = sortedbest[0]
 
-        offset = results[best][1]
+        langs.append((best,checkpoint)) #we want to know where a lang starts so this goes first
+        offset = results[best][1] 
         checkpoint+= offset 
-        if checkpoint<max:
+        if checkpoint<max: #means we stopped via the default max rule
             checkpoint-=max_default
-        langs.append((best,checkpoint,results[best][0]))
         if offset>=999: #full replace
             start_up = effective_text[offset-999:offset]
         else:  #partial update
