@@ -5,8 +5,8 @@ import common_modules
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
     parser.add_argument("--order",help="Order of the model",type=int,default=2)
-    parser.add_argument("--classsource",help="Class source text file", default="../example/english.txt")
-    parser.add_argument("--input",help="Text under anaylisis", default="../example/example.txt")
+    parser.add_argument("--classsource",help="Class source text file", required=True)
+    parser.add_argument("--input",help="Text under analysis", required=True)
     parser.add_argument("--smoothing", help="Smoothing parameter", type=float,default=1)
 
     args = parser.parse_args()

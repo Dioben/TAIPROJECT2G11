@@ -43,8 +43,8 @@ if __name__ == "__main__":
     parser= argparse.ArgumentParser()
     parser.add_argument("--order",help="Order of the model",type=int,default=3)
     parser.add_argument("--smoothing", help="Smoothing parameter", type=float,default=0.1)
-    parser.add_argument("--folder", help="Models folder", default="../models")
-    parser.add_argument("--outputprefix", help="Output prefix", default="models/")
+    parser.add_argument("--folder", help="Models folder", required=True)
+    parser.add_argument("--outputprefix", help="Output prefix", required=True)
     args = parser.parse_args()
 
     os.makedirs(os.path.dirname(args.outputprefix), exist_ok=True)
