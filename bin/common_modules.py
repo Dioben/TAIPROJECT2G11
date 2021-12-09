@@ -64,3 +64,33 @@ def calculateFileSize(model,text,start_up,default_cost,notInModelCost):
         current_buffer = current_buffer [1:]+character
         
     return cost
+
+
+def calculateFileSizeStopEarly(model,text,start_up,default_cost,notInModelCost,default_limit):
+    order = len ( list (model['model'].keys())[0] )
+    current_buffer = start_up[-order:]
+    cost = 0
+    cost_map = model['model']
+    alphabet = set(model['alphabet'])
+    current_defaults= 0
+    checked = 0
+    for character in text:
+        checked+=1
+        if character not in alphabet:
+            cost+=notInModelCost
+            current_defaults+=1
+        elif current_buffer not in cost_map: #do we know this predecessor?
+            cost+=default_cost
+            current_defaults+=1
+        else:
+            if character in cost_map[current_buffer]: #do we know this follow-up character?
+                cost+=cost_map[current_buffer][character]
+                current_defaults=0
+            else:
+                cost+=cost_map[current_buffer]['default']
+                current_defaults+=1
+        if current_defaults>=default_limit:
+            break
+        current_buffer = current_buffer [1:]+character
+        
+    return cost,checked

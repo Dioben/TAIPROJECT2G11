@@ -25,6 +25,7 @@ if __name__ == "__main__":
         fullpath = f"{args.classes}/{f}"
         fileobj = gzip.open(fullpath,"rt")
         model = json.load(fileobj)
+        fileobj.close()
         order = len( list(model['model'].keys())[0] )#get length of a random key to know order, all the keys in a given model have same order anyway
         start_up = sorted(model['alphabet'])[0]*order
         default_cost = -math.log2(1/len(model['alphabet'])) #in case we haven't seen a prefix
