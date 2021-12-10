@@ -112,8 +112,8 @@ def LocateLangsIO(models,text,min_length,max_default):
 
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
-    parser.add_argument("--classes",help="Class models source folder", default="models")
-    parser.add_argument("--input",help="Text under analisis", default="../example/example.txt")
+    parser.add_argument("--classes",help="Class models source folder", required=True)
+    parser.add_argument("--input",help="Text under analysis", required=True)
     parser.add_argument("--intensive",dest="memory",help="Enable high memory use",action="store_true")
     parser.add_argument("--low-memory",dest="memory",help="Enable low memory use, more IO",action="store_false")
     parser.set_defaults(memory=True)
