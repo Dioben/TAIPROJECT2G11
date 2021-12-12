@@ -5,24 +5,17 @@ import common_modules
 import math
 import os
 
-def loadModelsFull(path):
+def loadModelsFull(jsonList):
     models = {}
-    for f in os.listdir(args.classes):
-        keyname = f.removesuffix(".tar.gz")
-        fullpath = f"{args.classes}/{f}"
-        fileobj = gzip.open(fullpath,"rt")
-        model = json.load(fileobj)
-        fileobj.close()
-        models[keyname]=model
+    for key,values in jsonList.items():
+        models[key] = []
+        for fullpath in values:
+            fileobj = gzip.open(fullpath,"rt")
+            model = json.load(fileobj)
+            fileobj.close()
+            models[key].append(model)
     return models
 
-def loadModelPaths(path):
-    models = {}
-    for f in os.listdir(args.classes):
-        keyname = f.removesuffix(".tar.gz")
-        fullpath = f"{args.classes}/{f}"
-        models[keyname]=fullpath
-    return models
 
 def LocateLangsMemory(models,text,min_length,max_default):
     langs = []
@@ -34,10 +27,15 @@ def LocateLangsMemory(models,text,min_length,max_default):
     while checkpoint<max:
         results = {}
         effective_text = text[checkpoint:]
-        for keyname,model in models.items():
-            default_cost = -math.log2(1/len(model['alphabet']))
-            cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
-            results[keyname] = (cost,travelled)
+        for keyname,modelList in models.items():
+            for model in modelList:
+                default_cost = -math.log2(1/len(model['alphabet']))
+                cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
+                if not results[keyname]:
+                    results[keyname] = (cost,travelled)
+                else:
+                    if results[keyname][0]/results[keyname][1]> cost/travelled:
+                        results[keyname] = (cost,travelled)
 
         ending = max-checkpoint<min_length #do we have enough characters left to enforce min_length
         
@@ -74,16 +72,23 @@ def LocateLangsIO(models,text,min_length,max_default):
     while checkpoint<max:
         results = {}
         effective_text = text[checkpoint:]
-        for keyname,modelpath in models.items():
-            
-            #load model
-            fileobj = gzip.open(modelpath,"rt")
-            model = json.load(fileobj)
-            fileobj.close()
+        
+        for keyname,modelPathList in models.items():
+            for modelpath in modelPathList:
 
-            default_cost = -math.log2(1/len(model['alphabet']))
-            cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
-            results[keyname] = (cost,travelled)
+                #load model
+                fileobj = gzip.open(modelpath,"rt")
+                model = json.load(fileobj)
+                fileobj.close()
+
+                default_cost = -math.log2(1/len(model['alphabet']))
+                cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
+                if not results[keyname]:
+                    results[keyname] = (cost,travelled)
+                else:
+                    if results[keyname][0]/results[keyname][1]> cost/travelled:
+                        results[keyname] = (cost,travelled)
+
 
         ending = max-checkpoint<min_length #do we have enough characters left to enforce min_length
         
@@ -112,7 +117,7 @@ def LocateLangsIO(models,text,min_length,max_default):
 
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
-    parser.add_argument("--classes",help="Class models source folder", required=True)
+    parser.add_argument("--groups",help="Class model groups JSON file", required=True)
     parser.add_argument("--input",help="Text under analysis", required=True)
     parser.add_argument("--intensive",dest="memory",help="Enable high memory use",action="store_true")
     parser.add_argument("--low-memory",dest="memory",help="Enable low memory use, more IO",action="store_false")
@@ -125,11 +130,14 @@ if __name__ == "__main__":
     text= file.read()
     file.close()
 
+    file = open(args.groups)
+    models = json.load(file)
+    file.close()
+
     if args.memory:
-        models = loadModelsFull(args.classes)
+        models = loadModelsFull(models)
         gaps = LocateLangsMemory(models,text,args.min_length,args.max_default)
     else:
-        models = loadModelPaths(args.classes)
         gaps = LocateLangsIO(models,text,args.min_length,args.max_default)
 
 print(*gaps, sep="\n")
