@@ -123,17 +123,18 @@ def calculateLanguageIntervals(model, text, startup, notInModelCost, windowSize,
                 cost += costMap[localCurrentBuffer]['default']
             localCurrentBuffer = localCurrentBuffer[1:] + char
         if cost/windowSize <= threshold:
-            validLength += 1
             if not validWindow:
                 firstLocalValidOffset = offset - windowSize
                 validWindow = True
         else:
             if validWindow:
+                validLength += offset - windowSize - firstLocalValidOffset
                 intervals.append((firstLocalValidOffset, offset - windowSize))
                 validWindow = False
         window = window[1:] + text[offset]
         currentBuffer = currentBuffer[1:] + text[offset - windowSize]
         offset += 1
     if validWindow:
+        validLength += offset - windowSize - firstLocalValidOffset
         intervals.append((firstLocalValidOffset, offset - windowSize))
     return intervals, validLength
