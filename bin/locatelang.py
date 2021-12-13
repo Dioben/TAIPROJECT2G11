@@ -5,16 +5,6 @@ import common_modules
 import math
 import os
 
-def loadModelsFull(path):
-    models = {}
-    for f in os.listdir(args.classes):
-        keyname = f.removesuffix(".tar.gz")
-        fullpath = f"{args.classes}/{f}"
-        fileobj = gzip.open(fullpath,"rt")
-        model = json.load(fileobj)
-        fileobj.close()
-        models[keyname]=model
-    return models
 
 def loadModelPaths(path):
     models = {}
@@ -24,112 +14,35 @@ def loadModelPaths(path):
         models[keyname]=fullpath
     return models
 
-def LocateLangsMemory(models,text,min_length,max_default):
-    langs = []
-    checkpoint = 0
-    max = len(text)
-    text_alphabet = set(text)
-    notInModelCost = math.log2(len(text_alphabet))
-    start_up = sorted(text_alphabet)[0]*999 #if you use more than this stuff breaks, please do not compute a model with k =1000
-    while checkpoint<max:
-        results = {}
-        effective_text = text[checkpoint:]
-        for keyname,model in models.items():
-            default_cost = -math.log2(1/len(model['alphabet']))
-            cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
-            results[keyname] = (cost,travelled)
 
-        ending = max-checkpoint<min_length #do we have enough characters left to enforce min_length
-        
-        filteredresults={x for x,y in results.items() if y[1]>=min_length or ending}
-        sortedbest = sorted(results.keys(),key=lambda x:results[x][0]/results[x][1])
-
-        best = None
-        for result in sortedbest:
-            if result in filteredresults:
-                best = result
-                break
-        if not best:
-            best = sortedbest[0]
-
-        langs.append((best,checkpoint)) #we want to know where a lang starts so this goes first
-        offset = results[best][1] 
-        checkpoint+= offset 
-        if checkpoint<max: #means we stopped via the default max rule
-            checkpoint-=max_default
-        if offset>=999: #full replace
-            start_up = effective_text[offset-999:offset]
-        else:  #partial update
-            start_up = start_up[offset:]+effective_text[:offset]
-            
+def LocateLangs(models,text,windowSize,threshold):
+    langs = dict()
+    textAlphabet = set(text)
+    notInModelCost = math.log2(len(textAlphabet))
+    startup = sorted(textAlphabet)[0] * 999 #if you use more than this stuff breaks, please do not compute a model with k = 1000
+    for modelName, modelPath in models.items():
+        file = gzip.open(modelPath, "rt")
+        model = json.load(file)
+        file.close()
+        intervals, validLength = common_modules.calculateLanguageIntervals(model, text, startup, notInModelCost, windowSize, threshold)
+        if len(intervals) > 0:
+            langs[modelName] = intervals, validLength
     return langs
 
-def LocateLangsIO(models,text,min_length,max_default):
-    langs = []
-    checkpoint = 0
-    max = len(text)
-    text_alphabet = set(text)
-    notInModelCost = math.log2(len(text_alphabet))
-    start_up = sorted(text_alphabet)[0]*999 #if you use more than this stuff breaks, please do not compute a model with k =1000
-    while checkpoint<max:
-        results = {}
-        effective_text = text[checkpoint:]
-        for keyname,modelpath in models.items():
-            
-            #load model
-            fileobj = gzip.open(modelpath,"rt")
-            model = json.load(fileobj)
-            fileobj.close()
-
-            default_cost = -math.log2(1/len(model['alphabet']))
-            cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
-            results[keyname] = (cost,travelled)
-
-        ending = max-checkpoint<min_length #do we have enough characters left to enforce min_length
-        
-        filteredresults={x for x,y in results.items() if y[1]>=min_length or ending}
-        sortedbest = sorted(results.keys(),key=lambda x:results[x][0]/results[x][1])[0]
-
-        best = None
-        for result in sortedbest:
-            if result in filteredresults:
-                best = result
-                break
-        if not best:
-            best = sortedbest[0]
-
-        langs.append((best,checkpoint)) #we want to know where a lang starts so this goes first
-        offset = results[best][1] 
-        checkpoint+= offset 
-        if checkpoint<max: #means we stopped via the default max rule
-            checkpoint-=max_default
-        if offset>=999: #full replace
-            start_up = effective_text[offset-999:offset]
-        else:  #partial update
-            start_up = start_up[offset:]+effective_text[:offset]
-            
-    return langs
 
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
     parser.add_argument("--classes",help="Class models source folder", required=True)
     parser.add_argument("--input",help="Text under analysis", required=True)
-    parser.add_argument("--intensive",dest="memory",help="Enable high memory use",action="store_true")
-    parser.add_argument("--low-memory",dest="memory",help="Enable low memory use, more IO",action="store_false")
-    parser.set_defaults(memory=True)
-    parser.add_argument("--min-length",help="Minimum length of a language chunk",type=int, default=50)
-    parser.add_argument("--max-default",help="Consecutive Unknown sequences tolerated",type=int, default=7)
+    parser.add_argument("--window-size",help="Size of the window", type=int, default=10)
+    parser.add_argument("--threshold",help="Maximum average cost (bytes) of a window to be considered a language", type=float, default=2)
     args = parser.parse_args()
 
     file = open(args.input,"r")
-    text= file.read()
+    text = file.read()
     file.close()
 
-    if args.memory:
-        models = loadModelsFull(args.classes)
-        gaps = LocateLangsMemory(models,text,args.min_length,args.max_default)
-    else:
-        models = loadModelPaths(args.classes)
-        gaps = LocateLangsIO(models,text,args.min_length,args.max_default)
+    models = loadModelPaths(args.classes)
+    gaps = LocateLangs(models,text,args.window_size,args.threshold)
 
-print(*gaps, sep="\n")
+    print(*gaps.items(), sep="\n")

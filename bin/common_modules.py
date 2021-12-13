@@ -94,3 +94,47 @@ def calculateFileSizeStopEarly(model,text,start_up,default_cost,notInModelCost,d
         current_buffer = current_buffer [1:]+character
         
     return cost,checked
+
+
+def calculateLanguageIntervals(model, text, startup, notInModelCost, windowSize, threshold):
+    order = len(list(model['model'].keys())[0])
+    costMap = model['model']
+    alphabet = set(model['alphabet'])
+    defaultCost = -math.log2(1/len(alphabet))
+    textLen = len(text)
+    currentBuffer = startup[-order:]
+    offset = windowSize
+    window = text[0:windowSize]
+    intervals = []
+    validWindow = False
+    firstLocalValidOffset = -1
+    validLength = 0
+    while offset < textLen:
+        cost = 0
+        localCurrentBuffer = currentBuffer
+        for char in window:
+            if char not in alphabet:
+                cost += notInModelCost
+            elif localCurrentBuffer not in costMap:
+                cost += defaultCost
+            elif char in costMap[localCurrentBuffer]:
+                cost += costMap[localCurrentBuffer][char]
+            else:
+                cost += costMap[localCurrentBuffer]['default']
+            localCurrentBuffer = localCurrentBuffer[1:] + char
+        if cost/windowSize <= threshold:
+            if not validWindow:
+                firstLocalValidOffset = offset - windowSize
+                validWindow = True
+        else:
+            if validWindow:
+                validLength += offset - windowSize - firstLocalValidOffset
+                intervals.append((firstLocalValidOffset, offset - windowSize))
+                validWindow = False
+        window = window[1:] + text[offset]
+        currentBuffer = currentBuffer[1:] + text[offset - windowSize]
+        offset += 1
+    if validWindow:
+        validLength += offset - windowSize - firstLocalValidOffset
+        intervals.append((firstLocalValidOffset, offset - windowSize))
+    return intervals, validLength
