@@ -26,7 +26,7 @@ if __name__ == "__main__":
         model = json.load(fileobj)
         fileobj.close()
         order = len( list(model['model'].keys())[0] )#get length of a random key to know order, all the keys in a given model have same order anyway
-        start_up = sorted(model['alphabet'])[0]*order
+        start_up = text[-order:]
         default_cost = -math.log2(1/len(model['alphabet'])) #in case we haven't seen a prefix
         filesize = common_modules.calculateFileSize(model,text,start_up,default_cost,notInModelCost)
         costs[keyname]= filesize
