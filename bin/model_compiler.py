@@ -9,9 +9,14 @@ from common_modules import calculateBitCostMap
 
 def getFileFrequenciesXZ(filename,order): #same as common modules func with for compressed text files
     try:
-        file = lzma.open(filename,"rt")
-        text= file.read()
-        file.close()
+        try:
+            file = open(filename,"rt")
+            text = file.read()
+            file.close
+        except:
+            file = lzma.open(filename,"rt")
+            text= file.read()
+            file.close()
     except:
         return None,None,None #bad file
 
@@ -55,7 +60,7 @@ if __name__ == "__main__":
 
     ignores = []
     for f in os.listdir(args.folder):
-        keyname = f.removesuffix(".wiki.utf8.xz")
+        keyname = f.removesuffix(".utf8").removesuffix(".wiki.utf8.xz")
         fullpath = f"{args.folder}/{f}"
         table,appearances,alphabet = getFileFrequenciesXZ(fullpath,args.order)
         if not table:

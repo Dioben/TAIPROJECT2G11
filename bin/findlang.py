@@ -5,23 +5,18 @@ import common_modules
 import math
 import os
 
-if __name__ == "__main__":
-    parser= argparse.ArgumentParser()
-    parser.add_argument("--classes",help="Class models source folder", required=True)
-    parser.add_argument("--input",help="Text under analysis", required=True)
-    args = parser.parse_args()
 
-
-    file = open(args.input,"r")
+def main(input, classes):
+    file = open(input,"r")
     text= file.read()
     file.close()
     notInModelCost = math.log2(len(set(text)))
 
     costs = {}
 
-    for f in os.listdir(args.classes):
-        keyname = f.removesuffix(".tar.gz")
-        fullpath = f"{args.classes}/{f}"
+    for f in os.listdir(classes):
+        keyname = f.removesuffix(".tar.gz").removesuffix("-train")
+        fullpath = f"{classes}/{f}"
         fileobj = gzip.open(fullpath,"rt")
         model = json.load(fileobj)
         fileobj.close()
@@ -31,8 +26,19 @@ if __name__ == "__main__":
         filesize = common_modules.calculateFileSize(model,text,start_up,default_cost,notInModelCost)
         costs[keyname]= filesize
 
-    print("Ranked Choices:")
-    keys = sorted(costs.keys(),key=lambda x:costs[x])
+    return costs
+
+
+if __name__ == "__main__":
+    parser= argparse.ArgumentParser()
+    parser.add_argument("--classes",help="Class models source folder", required=True)
+    parser.add_argument("--input",help="Text under analysis", required=True)
+    args = parser.parse_args()
+
+    costs = main(args.input, args.classes)
+
+    print("Ranked choices (top 100):")
+    keys = sorted(costs.keys(),key=lambda x:costs[x])[:100]
     for x in keys:
         print(f"file size: {costs[x]}, model: {x}")
     
