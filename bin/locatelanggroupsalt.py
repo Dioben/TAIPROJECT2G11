@@ -23,14 +23,13 @@ def LocateLangsMemory(models,text,min_length,max_default):
     max = len(text)
     text_alphabet = set(text)
     notInModelCost = math.log2(len(text_alphabet))
-    start_up = sorted(text_alphabet)[0]*999 #if you use more than this stuff breaks, please do not compute a model with k =1000
     while checkpoint<max:
         results = {}
         effective_text = text[checkpoint:]
         for keyname,modelList in models.items():
             for model in modelList:
                 default_cost = -math.log2(1/len(model['alphabet']))
-                cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
+                cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,default_cost,notInModelCost,max_default)
                 if not results[keyname]:
                     results[keyname] = (cost,travelled)
                 else:
@@ -68,7 +67,6 @@ def LocateLangsIO(models,text,min_length,max_default):
     max = len(text)
     text_alphabet = set(text)
     notInModelCost = math.log2(len(text_alphabet))
-    start_up = sorted(text_alphabet)[0]*999 #if you use more than this stuff breaks, please do not compute a model with k =1000
     while checkpoint<max:
         results = {}
         effective_text = text[checkpoint:]
@@ -82,7 +80,7 @@ def LocateLangsIO(models,text,min_length,max_default):
                 fileobj.close()
 
                 default_cost = -math.log2(1/len(model['alphabet']))
-                cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,start_up,default_cost,notInModelCost,max_default)
+                cost,travelled = common_modules.calculateFileSizeStopEarly(model,effective_text,default_cost,notInModelCost,max_default)
                 if not results[keyname]:
                     results[keyname] = (cost,travelled)
                 else:

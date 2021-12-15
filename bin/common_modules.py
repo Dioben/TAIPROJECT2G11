@@ -66,9 +66,9 @@ def calculateFileSize(model,text,start_up,default_cost,notInModelCost):
     return cost
 
 
-def calculateFileSizeStopEarly(model,text,start_up,default_cost,notInModelCost,default_limit):
+def calculateFileSizeStopEarly(model,text,default_cost,notInModelCost,default_limit):
     order = len ( list (model['model'].keys())[0] )
-    current_buffer = start_up[-order:]
+    current_buffer = text[-order:]
     cost = 0
     cost_map = model['model']
     alphabet = set(model['alphabet'])
@@ -96,13 +96,13 @@ def calculateFileSizeStopEarly(model,text,start_up,default_cost,notInModelCost,d
     return cost,checked
 
 
-def calculateLanguageIntervals(model, text, startup, notInModelCost, windowSize, threshold):
+def calculateLanguageIntervals(model, text, notInModelCost, windowSize, threshold):
     order = len(list(model['model'].keys())[0])
     costMap = model['model']
     alphabet = set(model['alphabet'])
     defaultCost = -math.log2(1/len(alphabet))
     textLen = len(text)
-    currentBuffer = startup[-order:]
+    currentBuffer = text[-order:]
     offset = windowSize
     window = text[0:windowSize]
     intervals = []
