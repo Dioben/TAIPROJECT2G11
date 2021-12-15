@@ -9,13 +9,12 @@ def LocateLangs(models,text,windowSize,threshold):
     langs = dict()
     textAlphabet = set(text)
     notInModelCost = math.log2(len(textAlphabet))
-    startup = sorted(textAlphabet)[0] * 999 #if you use more than this stuff breaks, please do not compute a model with k = 1000
     for modelGroupName, modelPathList in models.items():
         for modelPath in modelPathList:
             file = gzip.open(modelPath, "rt")
             model = json.load(file)
             file.close()
-            intervals, validLength = common_modules.calculateLanguageIntervals(model, text, startup, notInModelCost, windowSize, threshold)
+            intervals, validLength = common_modules.calculateLanguageIntervals(model, text, notInModelCost, windowSize, threshold)
             if len(intervals) > 0:
                 try:
                     if langs[modelGroupName][1] > validLength:
