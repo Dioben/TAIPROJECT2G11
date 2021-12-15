@@ -27,7 +27,6 @@ def LocateLangs(models,text,windowSize,threshold):
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
     parser.add_argument("--groups",help="Class model groups JSON file", required=True)
-    parser.add_argument("--classes",help="Class models source folder", required=True)
     parser.add_argument("--input",help="Text under analysis", required=True)
     parser.add_argument("--window-size",help="Size of the window", type=int, default=10)
     parser.add_argument("--threshold",help="Maximum average cost (bytes) of a window to be considered a language", type=float, default=2)
