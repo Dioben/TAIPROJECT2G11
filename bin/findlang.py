@@ -17,8 +17,7 @@ if __name__ == "__main__":
     file.close()
     notInModelCost = math.log2(len(set(text)))
 
-    bestcost = math.inf
-    bestmodel = None
+    costs = {}
 
     for f in os.listdir(args.classes):
         keyname = f.removesuffix(".tar.gz")
@@ -30,9 +29,10 @@ if __name__ == "__main__":
         start_up = sorted(model['alphabet'])[0]*order
         default_cost = -math.log2(1/len(model['alphabet'])) #in case we haven't seen a prefix
         filesize = common_modules.calculateFileSize(model,text,start_up,default_cost,notInModelCost)
-        if filesize<bestcost:
-            bestmodel = keyname
-            bestcost = filesize
-    
-    print(f"Best filesize was {bestcost} for model {bestmodel}")
+        costs[keyname]= filesize
+
+    print("Ranked Choices:")
+    keys = sorted(costs.keys(),key=lambda x:costs[x])
+    for x in keys:
+        print(f"file size: {costs[x]}, model: {x}")
     
