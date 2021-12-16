@@ -5,6 +5,7 @@ __pycache__/
 models/*.xz
 */models/*
 DS/*
+*/testModels*
 # C extensions
 *.so
 
