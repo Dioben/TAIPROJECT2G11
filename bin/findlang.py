@@ -6,10 +6,7 @@ import math
 import os
 
 
-def main(input, classes):
-    file = open(input,"r")
-    text= file.read()
-    file.close()
+def main(text, classes):
     notInModelCost = math.log2(len(set(text)))
 
     costs = {}
@@ -35,7 +32,8 @@ if __name__ == "__main__":
     parser.add_argument("--input",help="Text under analysis", required=True)
     args = parser.parse_args()
 
-    costs = main(args.input, args.classes)
+    with open(args.input, "r") as file:
+        costs = main(file.read(), args.classes)
 
     print("Ranked choices (top 100):")
     keys = sorted(costs.keys(),key=lambda x:costs[x])[:100]
