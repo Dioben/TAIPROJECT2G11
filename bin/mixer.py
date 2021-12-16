@@ -8,20 +8,25 @@ def exportRandomMix(filelist,samples,suffix,lines,folder):
     lines = {}
     outputfile = ""
     for filekey in filelist:
-        outputfile+=filekey
+        outputfile+=filekey+";"
         file = open(samples[filekey],"r")
         filelines = file.readLines()
         file.close()
         lines[filekey] = [line.split(" ",1)[1].strip() for line in filelines] #remove model identifier and trim whitespace
+    outputfile = outputfile[:-1]
     outputfile+=f"{suffix}.txt"
     outputfile = folder + "/"+outputfile
     f = open(outputfile,"w")
     for _ in range(lines):
         str = ""
+        offsets = [0]
         for poss in lines.values():
-            str+=random.choice(poss)
+            text=random.choice(poss)
+            str+=text
+            offsets.append(offsets[-1]+len(text))
         str+="\n"
-        f.write(str)
+        f.write(" ".join(offsets[:-1])+"\n")
+        f.write(str+"\n")
     f.close()
 
 if __name__ == "__main__":
