@@ -47,24 +47,18 @@ def getLineCosts(costs, textDir, model):
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
     parser.add_argument("--folder", help="Models folder", required=True)
-    # parser.add_argument("--fulltest-dir",help="Folder with full texts under analysis", required=True)
-    # parser.add_argument("--longtest-dir",help="Folder with long texts under analysis", required=True)
-    # parser.add_argument("--mediumtest-dir",help="Folder with medium texts under analysis", required=True)
-    # parser.add_argument("--shorttest-dir",help="Folder with short texts under analysis", required=True)
-    # parser.add_argument("--tinytest-dir",help="Folder with tiny texts under analysis", required=True)
+    parser.add_argument("--fulltest-dir",help="Folder with full texts under analysis", required=True)
+    parser.add_argument("--longtest-dir",help="Folder with long texts under analysis", required=True)
+    parser.add_argument("--mediumtest-dir",help="Folder with medium texts under analysis", required=True)
+    parser.add_argument("--shorttest-dir",help="Folder with short texts under analysis", required=True)
+    parser.add_argument("--tinytest-dir",help="Folder with tiny texts under analysis", required=True)
     args = parser.parse_args()
-
-    args.fulltest_dir = "../DS/test/"
-    args.longtest_dir = "../DS/testsets-long/"
-    args.mediumtest_dir = "../DS/testsets-medium/"
-    args.shorttest_dir = "../DS/testsets-short/"
-    args.tinytest_dir = "../DS/testsets-tiny/"
 
     accuracies = {}
 
     for modelSize in [i/10 for i in range(1, 11)]:
 
-        modelDir = f'testModels{int(modelSize*10)}/'
+        modelDir = f'testModels{int(modelSize*10):0>2d}/'
         if not os.path.isdir(modelDir):
             model_compiler(3, 0.1, args.folder, modelDir, modelSize)
 
