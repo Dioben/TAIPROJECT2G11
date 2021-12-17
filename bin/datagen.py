@@ -90,7 +90,9 @@ def getMixedIntervals(modelIntervals, textDir, model, keyModelName):
 
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
-    parser.add_argument("--folder", help="Models folder", required=True)
+    parser.add_argument("--folder",help="Folder with the texts for the model", required=True)
+    parser.add_argument("--models-folder",help="Folder to store the models", required=True)
+    parser.add_argument("--outputprefix", help="Output prefix", required=True)
     parser.add_argument("--fulltest-dir",help="Folder with full texts under analysis", required=True)
     parser.add_argument("--longtest-dir",help="Folder with long texts under analysis", required=True)
     parser.add_argument("--mediumtest-dir",help="Folder with medium texts under analysis", required=True)
@@ -107,7 +109,7 @@ if __name__ == "__main__":
 
     for modelSize in [i/10 for i in range(1, 11)]:
 
-        modelDir = f'testModels{int(modelSize*10):0>2d}/'
+        modelDir = f'{args.models_folder}{int(modelSize*100):0>3d}/'
         if not os.path.isdir(modelDir):
             model_compiler(3, 0.1, args.folder, modelDir, modelSize)
 
@@ -139,5 +141,5 @@ if __name__ == "__main__":
 
         intervals[modelSize] = modelIntervals
 
-    with gzip.open("dataJson.tar.gz", "wt") as f:
+    with gzip.open(f"{args.outputprefix}.tar.gz", "wt") as f:
         json.dump({"accuracies": accuracies, "intervals": intervals}, f)
