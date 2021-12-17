@@ -4,29 +4,30 @@ import random
 import itertools
 
 
-def exportRandomMix(filelist,samples,suffix,lines,folder):
+def exportRandomMix(filelist,samples,suffix,lineCount,folder):
+    os.makedirs(os.path.dirname(folder), exist_ok=True)
     lines = {}
     outputfile = ""
     for filekey in filelist:
         outputfile+=filekey+";"
         file = open(samples[filekey],"r")
-        filelines = file.readLines()
+        filelines = file.readlines()
         file.close()
-        lines[filekey] = [line.split(" ",1)[1].strip() for line in filelines] #remove model identifier and trim whitespace
+        lines[filekey] = [line.split("	",1)[1].strip() for line in filelines] #remove model identifier and trim whitespace
     outputfile = outputfile[:-1]
     outputfile+=f"{suffix}.txt"
     outputfile = folder + "/"+outputfile
     f = open(outputfile,"w")
-    for _ in range(lines):
-        str = ""
+    for _ in range(lineCount):
+        mix = ""
         offsets = [0]
         for poss in lines.values():
             text=random.choice(poss)
-            str+=text
+            mix+=text
             offsets.append(offsets[-1]+len(text))
-        str+="\n"
-        f.write(" ".join(offsets[:-1])+"\n")
-        f.write(str+"\n")
+        mix+="\n"
+        f.write(" ".join([str(x) for x in offsets][:-1])+"\n")
+        f.write(mix+"\n")
     f.close()
 
 if __name__ == "__main__":
@@ -34,18 +35,18 @@ if __name__ == "__main__":
     parser.add_argument("--count",help="How many models we're concatenating",type=int,default=3)
     parser.add_argument("--input", help="test texts folder", required=True)
     parser.add_argument("--outputfolder", help="Output folder", required=True)
-    parser.add_argument("--outputs",help="Number of files put out",default=50,type=int)
-    parser.add_argument("--lines", help="lines per file",type=int, default=50)
+    parser.add_argument("--outputs",help="Number of files put out",default=5,type=int)
+    parser.add_argument("--lines", help="lines per file",type=int, default=1)
 
     args = parser.parse_args()
 
     samples = {}
     for f in os.listdir(args.input):
-        fullpath = f"{args.classes}/{f}"
+        fullpath = f"{args.input}/{f}"
         keyname = f.split("-test")[0]
         samples[keyname] = fullpath
 
-    combs = itertools.permutations(samples.keys(),args.count)
+    combs = list(itertools.permutations(samples.keys(),args.count))
     random.shuffle(combs)
     combs = combs[:args.outputs]
 

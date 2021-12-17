@@ -16,18 +16,18 @@ def findsize(text, model):
     return filesize
 
 
-def getTextCosts(costs, textDir, model):
+def getTextCosts(costs, textDir, model, keyModelName):
     for textName in os.listdir(textDir):
         with open(f"{textDir}/{textName}", "r") as file:
             cost = findsize(file.read(), model)
-            keyTextName = textName.removesuffix("-test.utf8")
+            keyTextName = textName.split("-test")[0]
             if keyTextName not in costs:
                 costs[keyTextName] = {}
             costs[keyTextName][keyModelName] = cost
     return costs
 
 
-def getLineCosts(costs, textDir, model):
+def getLineCosts(costs, textDir, model, keyModelName):
     for textName in os.listdir(textDir):
         with open(f"{textDir}/{textName}", "r") as file:
             i = -1
@@ -35,13 +35,52 @@ def getLineCosts(costs, textDir, model):
                 i+=1
                 line = line.split("	", 1)[1]
                 cost = findsize(line, model)
-                keyTextName = textName.removesuffix("-test.utf8")
+                keyTextName = textName.split("-test")[0]
                 if keyTextName not in costs:
                     costs[keyTextName] = {}
                 if i not in costs[keyTextName]:
                     costs[keyTextName][i] = {}
                 costs[keyTextName][i][keyModelName] = cost
     return costs
+
+
+def getTextPositives(costs):
+    testCount = len(costs)
+    correct = 0
+    for textName, textCosts in costs.items():
+        if textName == sorted(textCosts.keys(), key=lambda x: textCosts[x])[0]:
+            correct += 1
+    return testCount, correct
+
+
+def getLinePositives(costs):
+    testCount = 0
+    correct = 0
+    for textName, lines in costs.items():
+        testCount += len(lines)
+        for _, lineCosts in lines.items():
+            if textName == sorted(lineCosts.keys(), key=lambda x: lineCosts[x])[0]:
+                correct += 1
+    return testCount, correct
+
+
+def getMixedIntervals(modelIntervals, textDir, model, keyModelName):
+    for textName in os.listdir(textDir):
+        with open(f"{textDir}/{textName}", "r") as file:
+            offsets = file.readline()
+            line = file.readline()
+            notInModelCost = math.log2(len(line))
+            intervals, validLength = common_modules.calculateLanguageIntervals(model, line, notInModelCost, 15, 3)
+            if len(intervals) > 0:
+                if textName not in modelIntervals:
+                    offsets = [int(i) for i in offsets.split(" ")] + [len(line)]
+                    offsetModels = textName.removesuffix(".txt").split(";")
+                    expected =  {m: (offsets[i], offsets[i+1]) for i, m in enumerate(offsetModels)}
+                    modelIntervals[textName] = {"calculated": {}, "expected": expected}
+                modelIntervals[textName]["calculated"][keyModelName] = (intervals, validLength)
+    return modelIntervals
+
+
 
 
 if __name__ == "__main__":
@@ -52,9 +91,11 @@ if __name__ == "__main__":
     parser.add_argument("--mediumtest-dir",help="Folder with medium texts under analysis", required=True)
     parser.add_argument("--shorttest-dir",help="Folder with short texts under analysis", required=True)
     parser.add_argument("--tinytest-dir",help="Folder with tiny texts under analysis", required=True)
+    parser.add_argument("--mixedtest-dir",help="Folder with mixed texts under analysis", required=True)
     args = parser.parse_args()
 
     accuracies = {}
+    intervals = {}
 
     for modelSize in [i/10 for i in range(1, 11)]:
 
@@ -64,16 +105,30 @@ if __name__ == "__main__":
 
         costs = {"full":{}, "long":{}, "medium":{}, "short":{}, "tiny":{}}
 
+        modelIntervals = {}
+
         for f in os.listdir(modelDir):
             keyModelName = f.removesuffix(".tar.gz").removesuffix("-train")
             fullpath = f"{modelDir}{f}"
             fileobj = gzip.open(fullpath,"rt")
             model = json.load(fileobj)
 
-            costs["full"] = getTextCosts(costs["full"], args.fulltest_dir, model)
-            costs["long"] = getLineCosts(costs["long"], args.longtest_dir, model)
-            costs["medium"] = getLineCosts(costs["medium"], args.mediumtest_dir, model)
-            costs["short"] = getLineCosts(costs["short"], args.shorttest_dir, model)
-            costs["tiny"] = getLineCosts(costs["tiny"], args.tinytest_dir, model)
+            costs["full"] = getTextCosts(costs["full"], args.fulltest_dir, model, keyModelName)
+            costs["long"] = getLineCosts(costs["long"], args.longtest_dir, model, keyModelName)
+            costs["medium"] = getLineCosts(costs["medium"], args.mediumtest_dir, model, keyModelName)
+            costs["short"] = getLineCosts(costs["short"], args.shorttest_dir, model, keyModelName)
+            costs["tiny"] = getLineCosts(costs["tiny"], args.tinytest_dir, model, keyModelName)
 
-        # TODO: calculate accuracies
+            modelIntervals = getMixedIntervals(modelIntervals, args.mixedtest_dir, model, keyModelName)
+
+        accuracies[modelSize] = {
+            "full": getTextPositives(costs["full"]),
+            "long": getLinePositives(costs["long"]),
+            "medium": getLinePositives(costs["medium"]),
+            "short": getLinePositives(costs["short"]),
+            "tiny": getLinePositives(costs["tiny"])
+        }
+
+        intervals[modelSize] = modelIntervals
+
+    # TODO: use "accuracies" and "intervals" to create graphs
