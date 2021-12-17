@@ -5,6 +5,7 @@ import common_modules
 import gzip
 import json
 from model_compiler import main as model_compiler
+from mixer import main as mixer
 
 
 def findsize(text, model):
@@ -70,17 +71,21 @@ def getMixedIntervals(modelIntervals, textDir, model, keyModelName):
             offsets = file.readline()
             line = file.readline()
             notInModelCost = math.log2(len(line))
-            intervals, validLength = common_modules.calculateLanguageIntervals(model, line, notInModelCost, 15, 3)
-            if len(intervals) > 0:
-                if textName not in modelIntervals:
-                    offsets = [int(i) for i in offsets.split(" ")] + [len(line)]
-                    offsetModels = textName.removesuffix(".txt").split(";")
-                    expected =  {m: (offsets[i], offsets[i+1]) for i, m in enumerate(offsetModels)}
-                    modelIntervals[textName] = {"calculated": {}, "expected": expected}
-                modelIntervals[textName]["calculated"][keyModelName] = (intervals, validLength)
+            for windowSize in [1, 5, 10, 15, 20]:
+                for threshold in [1, 3, 5]:
+                    intervals, validLength = common_modules.calculateLanguageIntervals(model, line, notInModelCost, windowSize, threshold)
+                    if len(intervals) > 0:
+                        if textName not in modelIntervals:
+                            offsets = [int(i) for i in offsets.split(" ")] + [len(line)]
+                            offsetModels = textName.removesuffix(".txt").split(";")
+                            expected =  {m: (offsets[i], offsets[i+1]) for i, m in enumerate(offsetModels)}
+                            modelIntervals[textName] = {"calculated": {}, "expected": expected}
+                        if windowSize not in modelIntervals[textName]["calculated"]:
+                            modelIntervals[textName]["calculated"][windowSize] = {}
+                        if threshold not in modelIntervals[textName]["calculated"][windowSize]:
+                            modelIntervals[textName]["calculated"][windowSize][threshold] = {}
+                        modelIntervals[textName]["calculated"][windowSize][threshold][keyModelName] = (intervals, validLength)
     return modelIntervals
-
-
 
 
 if __name__ == "__main__":
@@ -93,6 +98,9 @@ if __name__ == "__main__":
     parser.add_argument("--tinytest-dir",help="Folder with tiny texts under analysis", required=True)
     parser.add_argument("--mixedtest-dir",help="Folder with mixed texts under analysis", required=True)
     args = parser.parse_args()
+
+    if not os.path.isdir(args.mixedtest_dir):
+        mixer(5, args.shorttest_dir, args.mixedtest_dir, 5, 1)
 
     accuracies = {}
     intervals = {}
@@ -110,8 +118,8 @@ if __name__ == "__main__":
         for f in os.listdir(modelDir):
             keyModelName = f.removesuffix(".tar.gz").removesuffix("-train")
             fullpath = f"{modelDir}{f}"
-            fileobj = gzip.open(fullpath,"rt")
-            model = json.load(fileobj)
+            with gzip.open(fullpath,"rt") as fileobj:
+                model = json.load(fileobj)
 
             costs["full"] = getTextCosts(costs["full"], args.fulltest_dir, model, keyModelName)
             costs["long"] = getLineCosts(costs["long"], args.longtest_dir, model, keyModelName)
@@ -131,4 +139,5 @@ if __name__ == "__main__":
 
         intervals[modelSize] = modelIntervals
 
-    # TODO: use "accuracies" and "intervals" to create graphs
+    with gzip.open("dataJson.tar.gz", "wt") as f:
+        json.dump({"accuracies": accuracies, "intervals": intervals}, f)

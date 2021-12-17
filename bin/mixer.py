@@ -30,6 +30,24 @@ def exportRandomMix(filelist,samples,suffix,lineCount,folder):
         f.write(mix+"\n")
     f.close()
 
+
+def main(count, input, outputfolder, outputs, lines):
+    samples = {}
+    for f in os.listdir(input):
+        fullpath = f"{input}/{f}"
+        keyname = f.split("-test")[0]
+        samples[keyname] = fullpath
+
+    combs = list(itertools.permutations(samples.keys(),count))
+    random.shuffle(combs)
+    combs = combs[:outputs]
+
+    outputfiles = 0
+    for filelist in combs:
+        exportRandomMix(filelist,samples,str(outputfiles),lines,outputfolder)
+        outputfiles+=1
+
+
 if __name__ == "__main__":
     parser= argparse.ArgumentParser()
     parser.add_argument("--count",help="How many models we're concatenating",type=int,default=3)
@@ -37,21 +55,6 @@ if __name__ == "__main__":
     parser.add_argument("--outputfolder", help="Output folder", required=True)
     parser.add_argument("--outputs",help="Number of files put out",default=5,type=int)
     parser.add_argument("--lines", help="lines per file",type=int, default=1)
-
     args = parser.parse_args()
-
-    samples = {}
-    for f in os.listdir(args.input):
-        fullpath = f"{args.input}/{f}"
-        keyname = f.split("-test")[0]
-        samples[keyname] = fullpath
-
-    combs = list(itertools.permutations(samples.keys(),args.count))
-    random.shuffle(combs)
-    combs = combs[:args.outputs]
-
-    outputfiles = 0
-    for filelist in combs:
-        exportRandomMix(filelist,samples,str(outputfiles),args.lines,args.outputfolder)
-        outputfiles+=1
-        
+    
+    main(args.count, args.input, args.outputfolder, args.outputs, args.lines)
