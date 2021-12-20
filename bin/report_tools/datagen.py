@@ -1,9 +1,11 @@
 import argparse
 import math
 import os
-import common_modules
 import gzip
 import json
+import sys
+sys.path.append("../")
+import common_modules
 from model_compiler import main as model_compiler
 from mixer import main as mixer
 
@@ -99,9 +101,9 @@ if __name__ == "__main__":
     parser.add_argument("--shorttest-dir",help="Folder with short texts under analysis", required=True)
     parser.add_argument("--tinytest-dir",help="Folder with tiny texts under analysis", required=True)
     parser.add_argument("--mixedtest-dir",help="Folder with mixed texts under analysis", required=True)
-    parser.add_argument("--model-sizes",help="List of model sizes to use" , type=float, nargs="+", required=True)
-    parser.add_argument("--window-sizes",help="List of window sizes to use" , type=int, nargs="+", required=True)
-    parser.add_argument("--thresholds",help="List of window sizes to use" , type=float, nargs="+", required=True)
+    parser.add_argument("--model-sizes",help="List of model sizes to use" , type=float, nargs="+", default=[0.1, 0.5, 1.0])
+    parser.add_argument("--window-sizes",help="List of window sizes to use" , type=int, nargs="+", default=[1, 20])
+    parser.add_argument("--thresholds",help="List of window sizes to use" , type=float, nargs="+", default=[3.0])
     args = parser.parse_args()
 
     if not os.path.isdir(args.mixedtest_dir):
