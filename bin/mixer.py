@@ -4,7 +4,7 @@ import random
 import itertools
 
 
-def exportRandomMix(filelist,samples,suffix,lineCount,folder):
+def exportRandomMix(filelist,samples,lineCount,folder):
     os.makedirs(os.path.dirname(folder), exist_ok=True)
     lines = {}
     outputfile = ""
@@ -14,9 +14,7 @@ def exportRandomMix(filelist,samples,suffix,lineCount,folder):
         filelines = file.readlines()
         file.close()
         lines[filekey] = [line.split("	",1)[1].strip() for line in filelines] #remove model identifier and trim whitespace
-    outputfile = outputfile[:-1]
-    outputfile+=f"{suffix}.txt"
-    outputfile = folder + "/"+outputfile
+    outputfile = folder+"/"+outputfile[:-1]+".txt"
     f = open(outputfile,"w")
     for _ in range(lineCount):
         mix = ""
@@ -42,10 +40,8 @@ def main(count, input, outputfolder, outputs, lines):
     random.shuffle(combs)
     combs = combs[:outputs]
 
-    outputfiles = 0
     for filelist in combs:
-        exportRandomMix(filelist,samples,str(outputfiles),lines,outputfolder)
-        outputfiles+=1
+        exportRandomMix(filelist,samples,lines,outputfolder)
 
 
 if __name__ == "__main__":

@@ -65,14 +65,14 @@ def getLinePositives(costs):
     return testCount, correct
 
 
-def getMixedIntervals(modelIntervals, textDir, model, keyModelName):
+def getMixedIntervals(modelIntervals, textDir, model, keyModelName, windowSizes, thresholds):
     for textName in os.listdir(textDir):
         with open(f"{textDir}/{textName}", "r") as file:
             offsets = file.readline()
             line = file.readline()
             notInModelCost = math.log2(len(line))
-            for windowSize in [1, 5, 10, 15, 20]:
-                for threshold in [1, 3, 5]:
+            for windowSize in windowSizes:
+                for threshold in thresholds:
                     intervals, validLength = common_modules.calculateLanguageIntervals(model, line, notInModelCost, windowSize, threshold)
                     if len(intervals) > 0:
                         if textName not in modelIntervals:
@@ -99,6 +99,9 @@ if __name__ == "__main__":
     parser.add_argument("--shorttest-dir",help="Folder with short texts under analysis", required=True)
     parser.add_argument("--tinytest-dir",help="Folder with tiny texts under analysis", required=True)
     parser.add_argument("--mixedtest-dir",help="Folder with mixed texts under analysis", required=True)
+    parser.add_argument("--model-sizes",help="List of model sizes to use" , type=float, nargs="+", required=True)
+    parser.add_argument("--window-sizes",help="List of window sizes to use" , type=int, nargs="+", required=True)
+    parser.add_argument("--thresholds",help="List of window sizes to use" , type=float, nargs="+", required=True)
     args = parser.parse_args()
 
     if not os.path.isdir(args.mixedtest_dir):
@@ -107,7 +110,7 @@ if __name__ == "__main__":
     accuracies = {}
     intervals = {}
 
-    for modelSize in [i/10 for i in range(1, 11)]:
+    for modelSize in args.model_sizes:
 
         modelDir = f'{args.models_folder}{int(modelSize*100):0>3d}/'
         if not os.path.isdir(modelDir):
@@ -129,7 +132,7 @@ if __name__ == "__main__":
             costs["short"] = getLineCosts(costs["short"], args.shorttest_dir, model, keyModelName)
             costs["tiny"] = getLineCosts(costs["tiny"], args.tinytest_dir, model, keyModelName)
 
-            modelIntervals = getMixedIntervals(modelIntervals, args.mixedtest_dir, model, keyModelName)
+            modelIntervals = getMixedIntervals(modelIntervals, args.mixedtest_dir, model, keyModelName, args.window_sizes, args.thresholds)
 
         accuracies[modelSize] = {
             "full": getTextPositives(costs["full"]),
