@@ -3,6 +3,7 @@ import gzip
 import json
 import pandas as pd
 import plotly.express as px
+import os
 
 
 def drawAccuracies(data, outputFileName):
@@ -16,6 +17,7 @@ def drawAccuracies(data, outputFileName):
         z="Accuracy",
         color="Text size",
         title="Accuracy per model and text size")
+    os.makedirs(os.path.dirname(outputFileName), exist_ok=True)
     fig1.write_html(outputFileName)
 
 
@@ -40,6 +42,7 @@ def drawIntervals(data, textName, modelSize, windowSize, threshold, outputFileNa
         color_continuous_scale=[color for _, values in px.colors.qualitative._contents.items() if isinstance(values, list) for color in values])
     fig2.layout.xaxis.type = "linear"
     fig2.data[0].x = intervals.Delta.tolist()
+    os.makedirs(os.path.dirname(outputFileName), exist_ok=True)
     fig2.write_html(outputFileName)
 
 
