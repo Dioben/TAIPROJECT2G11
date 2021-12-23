@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 models/*.xz
 */models/*
+DS/*
+*/report_tools/testModels*
 # C extensions
 *.so
 
