@@ -7,7 +7,7 @@ import gzip
 from common_modules import calculateBitCostMap
 #compiles all text files in /models into a pickle
 
-def getFileFrequenciesXZ(filename,order,percentage): #same as common modules func with for compressed text files
+def getFileFrequenciesXZ(filename,order,fraction): #same as common modules func with for compressed text files
     try:
         try:
             file = open(filename,"rt")
@@ -20,7 +20,7 @@ def getFileFrequenciesXZ(filename,order,percentage): #same as common modules fun
     except:
         return None,None,None #bad file
     
-    text = text[0:int(len(text)*percentage)]
+    text = text[0:int(len(text)*fraction)]
 
     if len(text)<order:
         raise ValueError("Text is smaller than order")
@@ -46,20 +46,20 @@ def getFileFrequenciesXZ(filename,order,percentage): #same as common modules fun
     return table,appearances,alphabet
 
 
-def main(order, smoothing, folder, outputprefix, percentage):
+def main(order, smoothing, folder, outputprefix, fraction):
     os.makedirs(os.path.dirname(outputprefix), exist_ok=True)
     if order<1:
         raise ValueError("Order must be at least 1")
     if smoothing<=0:
         raise ValueError("Smoothing must be larger than 0")
-    if percentage>1 or percentage<=0:
+    if fraction>1 or fraction<=0:
         raise ValueError("Percentage must be between [1,0[")
 
     ignores = []
     for f in os.listdir(folder):
         keyname = f.removesuffix(".utf8").removesuffix(".wiki.utf8.xz")
         fullpath = f"{folder}/{f}"
-        table,_,alphabet = getFileFrequenciesXZ(fullpath,order,percentage)
+        table,_,alphabet = getFileFrequenciesXZ(fullpath,order,fraction)
         if not table:
             ignores.append(keyname)
             continue
@@ -76,10 +76,10 @@ if __name__ == "__main__":
     parser.add_argument("--smoothing", help="Smoothing parameter", type=float,default=0.1)
     parser.add_argument("--folder", help="Models folder", required=True)
     parser.add_argument("--outputprefix", help="Output prefix", required=True)
-    parser.add_argument("--percentage", help="Percentage of each model used", type=float, default=1)
+    parser.add_argument("--fraction", help="Fraction of each model used", type=float, default=1)
     args = parser.parse_args()
 
-    ignores = main(args.order, args.smoothing, args.folder, args.outputprefix, args.percentage)
+    ignores = main(args.order, args.smoothing, args.folder, args.outputprefix, args.fraction)
     
     print("Compilation finished")
     print("Failed files:")
