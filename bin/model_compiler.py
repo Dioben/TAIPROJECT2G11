@@ -57,7 +57,7 @@ def main(order, smoothing, folder, outputprefix, fraction):
 
     ignores = []
     for f in os.listdir(folder):
-        keyname = f.removesuffix(".utf8").removesuffix(".wiki.utf8.xz")
+        keyname = f.removesuffix(".utf8").removesuffix(".utf8.xz")
         fullpath = f"{folder}/{f}"
         table,_,alphabet = getFileFrequenciesXZ(fullpath,order,fraction)
         if not table:
