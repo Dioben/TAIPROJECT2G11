@@ -17,7 +17,10 @@ def drawAccuracies(data, outputFileName):
         z="Accuracy",
         color="Text size",
         title="Accuracy per model and text size")
-    os.makedirs(os.path.dirname(outputFileName), exist_ok=True)
+    try:
+        os.makedirs(os.path.dirname(outputFileName), exist_ok=True)
+    except:
+        pass
     fig1.write_html(outputFileName)
 
 
@@ -42,15 +45,18 @@ def drawIntervals(data, textName, modelSize, windowSize, threshold, outputFileNa
         color_continuous_scale=[color for _, values in px.colors.qualitative._contents.items() if isinstance(values, list) for color in values])
     fig2.layout.xaxis.type = "linear"
     fig2.data[0].x = intervals.Delta.tolist()
-    os.makedirs(os.path.dirname(outputFileName), exist_ok=True)
+    try:
+        os.makedirs(os.path.dirname(outputFileName), exist_ok=True)
+    except:
+        pass
     fig2.write_html(outputFileName)
 
 
-def main(fileName, accuraciesPrefix, intervalsPrevix, modelSizes, windowSizes, thresholds, maxModels):
+def main(fileName, accuraciesPrefix, intervalsPrevix, modelSizes, windowSizes, thresholds, maxModels, fileIndex):
     with gzip.open(fileName, "r") as file:
         data = json.load(file)
         drawAccuracies(data, f"{accuraciesPrefix}.html")
-        textName = list(data["intervals"]["1.0"].keys())[3]
+        textName = list(data["intervals"]["1.0"].keys())[fileIndex]
         for windowSize in windowSizes:
             for modelSize in modelSizes:
                 for threshold in thresholds:
@@ -73,5 +79,6 @@ if __name__ == "__main__":
     parser.add_argument("--window-sizes",help="List of window sizes to use" , type=int, nargs="+", default=[1, 20])
     parser.add_argument("--thresholds",help="List of window sizes to use" , type=float, nargs="+", default=[3.0])
     parser.add_argument("--max-models",help="Most models shown at once in the interval graph" , type=int, default=7)
+    parser.add_argument("--file-index",help="Index of the file to use for the interval graphs" , type=int, default=0)
     args = parser.parse_args()
-    main(args.data, args.accuracies_prefix, args.intervals_prefix, args.model_sizes, args.window_sizes, args.thresholds, args.max_models)
+    main(args.data, args.accuracies_prefix, args.intervals_prefix, args.model_sizes, args.window_sizes, args.thresholds, args.max_models, args.file_index)
