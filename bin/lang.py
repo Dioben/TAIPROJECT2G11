@@ -19,7 +19,6 @@ if __name__ == "__main__":
     table,_,alphabet = common_modules.getFileFrequencies(args.classsource,args.order)
     bit_cost_map = common_modules.calculateBitCostMap(table,alphabet,args.smoothing)
 
-    start_up = sorted(alphabet)[0]*args.order
 
     default_cost = -log2(1/len(alphabet)) #in case we haven't seen a prefix
 
@@ -27,6 +26,8 @@ if __name__ == "__main__":
     file = open(args.input,"r")
     text= file.read()
     file.close()
+    
+    start_up = text[-args.order:]
 
     notInModelCost = log2(len(set(text)))
 
