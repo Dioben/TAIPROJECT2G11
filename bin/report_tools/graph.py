@@ -10,7 +10,7 @@ def drawAccuracies(data, outputFileName):
     accuracies = pd.DataFrame(
         data = [[k, k2, v2[1]/v2[0]] for k, v in data["accuracies"].items() for k2, v2 in v.items()],
         columns = ["Model size", "Text size", "Accuracy"])
-    fig1 = px.scatter_3d(
+    fig = px.scatter_3d(
         accuracies,
         x="Model size",
         y="Text size",
@@ -21,7 +21,7 @@ def drawAccuracies(data, outputFileName):
         os.makedirs(os.path.dirname(outputFileName), exist_ok=True)
     except:
         pass
-    fig1.write_html(outputFileName)
+    fig.write_html(outputFileName)
 
 
 def drawIntervals(data, textName, modelSize, windowSize, threshold, outputFileName, maxModels):
@@ -29,27 +29,26 @@ def drawIntervals(data, textName, modelSize, windowSize, threshold, outputFileNa
         data = [[modelName, modelName, interval[0], interval[1], interval[1]-interval[0], sum(bytearray(modelName.encode("utf-8")))]
                 for modelName, intervalData in data["intervals"][modelSize][textName]["calculated"][windowSize][threshold].items() for interval in intervalData[0]],
         columns = ["Model", "Group", "Start", "End", "Delta", "Color"])
-    intervals = intervals[intervals["Group"].isin(intervals.groupby("Group")["Delta"].sum().nlargest(maxModels).index.tolist())]
-    intervals = intervals.append(pd.DataFrame(
-        data = [[modelName, "Expected", interval[0], interval[1], interval[1]-interval[0], sum(bytearray(modelName.encode("utf-8")))]
-                for modelName, interval in data["intervals"][modelSize][textName]["expected"].items()],
-        columns = ["Model", "Group", "Start", "End", "Delta", "Color"]), ignore_index=True)
-    fig2 = px.timeline(
+    intervals = intervals[intervals["Group"].isin(intervals.groupby("Group")["Delta"].sum().nlargest(maxModels).index.tolist())].sort_values("Start", ascending=True)
+    intervals = intervals.append([{"Model": modelName, "Group": "Expected", "Start": interval[0], "End": interval[1], "Delta": interval[1]-interval[0], "Color": sum(bytearray(modelName.encode("utf-8")))}
+                for modelName, interval in data["intervals"][modelSize][textName]["expected"].items()], ignore_index=True)
+    fig = px.timeline(
         intervals,
         x_start="Start",
         x_end="End",
         y="Group",
         color="Color",
         title=f"{textName}, Model size: {modelSize}, Window size: {windowSize}",
-        hover_data=["Model", "Start", "End"],
+        hover_data=["Model", "Start", "End", "Delta"],
         color_continuous_scale=[color for _, values in px.colors.qualitative._contents.items() if isinstance(values, list) for color in values])
-    fig2.layout.xaxis.type = "linear"
-    fig2.data[0].x = intervals.Delta.tolist()
+    fig.layout.xaxis.type = "linear"
+    fig.data[0].x = intervals.Delta.tolist()
+    fig.layout.yaxis.autorange = "reversed"
     try:
         os.makedirs(os.path.dirname(outputFileName), exist_ok=True)
     except:
         pass
-    fig2.write_html(outputFileName)
+    fig.write_html(outputFileName)
 
 
 def main(fileName, accuraciesPrefix, intervalsPrevix, modelSizes, windowSizes, thresholds, maxModels, fileIndex):
