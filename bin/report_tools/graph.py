@@ -38,7 +38,7 @@ def drawIntervals(data, textName, modelSize, windowSize, threshold, outputFileNa
         x_end="End",
         y="Group",
         color="Color",
-        title=f"{textName}, Model size: {modelSize}, Window size: {windowSize}",
+        title=f"Model size: {modelSize}, Window size: {windowSize}, Threshold: {threshold}, File: {textName}",
         hover_data=["Model", "Start", "End", "Delta"],
         color_continuous_scale=[color for _, values in px.colors.qualitative._contents.items() if isinstance(values, list) for color in values])
     fig.layout.xaxis.type = "linear"
