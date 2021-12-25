@@ -42,6 +42,15 @@ The options for these scripts are as follows
 - --window-size: the size of the window, default is **20**
 - --threshold: the maximum average cost of a window to be considered a language, default is **3**
 
+The JSON file in the **groups** argument should have the following format:
+```json
+{
+  "group1": ["modelPath1", "modelPath2", "..."],
+  "group2": ["..."],
+  "..."
+}
+```
+
 ### model_compiler.py
 - --order: order of the model, default is **3**
 - --smoothing: smoothing parameter of the model, default is **0.1**
