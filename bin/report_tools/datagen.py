@@ -146,8 +146,8 @@ if __name__ == "__main__":
 
         intervals[modelSize] = modelIntervals
     try:
-        os.makedirs(os.path.dirname(f"{args.outputprefix}.tar.gz"), exist_ok=True)
+        os.makedirs(os.path.dirname(f"{args.outputprefix}.gz"), exist_ok=True)
     except:
         pass
-    with gzip.open(f"{args.outputprefix}.tar.gz", "wt") as f:
+    with gzip.open(f"{args.outputprefix}.gz", "wt") as f:
         json.dump({"accuracies": accuracies, "intervals": intervals}, f)
