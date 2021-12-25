@@ -68,7 +68,10 @@ def calculateFileSize(model,text,start_up,default_cost,notInModelCost):
 
 def calculateFileSizeStopEarly(model,text,default_cost,notInModelCost,default_limit):
     order = len ( list (model['model'].keys())[0] )
-    current_buffer = text[-order:]
+    current_buffer = text
+    while len(current_buffer)<order:
+        current_buffer+=text
+    current_buffer = current_buffer[-order:]
     cost = 0
     cost_map = model['model']
     alphabet = set(model['alphabet'])
